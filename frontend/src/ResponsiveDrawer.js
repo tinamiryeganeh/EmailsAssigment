@@ -22,7 +22,7 @@ import Toolbar from '@material-ui/core/Toolbar';
 import Typography from '@material-ui/core/Typography';
 import {makeStyles, useTheme} from '@material-ui/core/styles';
 import EmailList from './EmailList';
-import emails from './data/emails.json';
+import {getMails} from './services/mail'
 const drawerWidth = 240;
 
 const useStyles = makeStyles((theme) => ({
@@ -65,27 +65,37 @@ function ResponsiveDrawer(props) {
   const {window} = props;
   const classes = useStyles();
   const theme = useTheme();
-  const [mobileOpen, setMobileOpen] = React.useState(false);
+  const [mobileOpen, setMobileOpen] = useState(false);
   const [inbox, setInbox] = useState([]);
   const [trash, setTrash] = useState([]);
   const [inInbox, setInInbox] = useState(true);
-  useEffect(() => {
-    const mails = emails.map((email) =>
-      ({...email, received: new Date(email.received)}));
-    mails.sort((email1, email2) => {
-      if (email1.received.getTime() > email2.received.getTime()) {
-        return -1;
-      }
-      if (email1.received.getTime() < email2.received.getTime()) {
-        return 1;
-      }
-      return 0;
-    });
+  const [mailboxes, setMailboxes] = useState([]);
+  const [selectedMailbox, setSelectedMailbox] = useState('inbox')
+  // [{name:'inbox', mail:[]}]
+  const getMailCount = (mailboxName)=> mailboxes?.filter(mailbox=> mailbox.name.toLowerCase() === mailboxName.toLowerCase())?.mail?.length
+  
+  useEffect(()=>{
+    getMails().then(mailboxes=>{
+      setMailboxes(mailboxes);
+    })
+  },[]);
+  // useEffect(() => {
+  //   const mails = emails.map((email) =>
+  //     ({...email, received: new Date(email.received)}));
+  //   mails.sort((email1, email2) => {
+  //     if (email1.received.getTime() > email2.received.getTime()) {
+  //       return -1;
+  //     }
+  //     if (email1.received.getTime() < email2.received.getTime()) {
+  //       return 1;
+  //     }
+  //     return 0;
+  //   });
     // spread operator
-    console.log(mails);
-    setTrash(mails.filter((email) => email.trash));
-    setInbox(mails.filter((email) => !email.trash));
-  }, []);
+  //   console.log(mails);
+  //   setTrash(mails.filter((email) => email.trash));
+  //   setInbox(mails.filter((email) => !email.trash));
+  // }, []);
   const handleDrawerToggle = () => {
     setMobileOpen(!mobileOpen);
   };
@@ -95,14 +105,44 @@ function ResponsiveDrawer(props) {
       <div className={classes.toolbar} />
       <Divider />
       <List >
-        <ListItem button key='Inbox' onClick={() => setInInbox(true)}>
+         <ListItem button key="Inbox" onClick={()=>{setSelectedMailbox('inbox')}}>
           <ListItemIcon > <InboxIcon /> </ListItemIcon>
-          <ListItemText primary='Inbox' />
+          <ListItemText primary="Inbox" />{getMailCount("inbox")}
         </ListItem>
-        <ListItem button key='Trash' onClick={() => setInInbox(false)}>
-          <ListItemIcon > <MailIcon /> </ListItemIcon>
-          <ListItemText primary='Trash' />
+      </List> 
+      <Divider />
+      <List >
+      <ListItem button key="Starred" onClick={()=>{}}>
+          
+          <ListItemIcon > <InboxIcon /> </ListItemIcon>
+          <ListItemText primary="Starred" />{getMailCount("starred")}
         </ListItem>
+        <ListItem button key="Sent" onClick={()=>{}}>
+          
+          <ListItemIcon > <InboxIcon /> </ListItemIcon>
+          <ListItemText primary="Sent" />{getMailCount("Sent")}
+        </ListItem>
+        <ListItem button key="Drafts" onClick={()=>{}}>
+          
+          <ListItemIcon > <InboxIcon /> </ListItemIcon>
+          <ListItemText primary="Drafts" />
+        </ListItem>
+        <ListItem button key="Trash" onClick={()=>{}}>
+          
+          <ListItemIcon > <InboxIcon /> </ListItemIcon>
+          <ListItemText primary="Trash" />
+        </ListItem>
+       
+           </List >
+           <Divider />
+           <List>
+        {mailboxes?.filter(mailbox=> mailbox.name !== 'inbox' || mailbox.name !== 'sent'|| mailbox.name !== 'trash')?.map(mailbox=>( <ListItem button key={mailbox.name} onClick={()=>{setSelectedMailbox(mailbox.name)}}>
+          <ListItemIcon > <InboxIcon /> </ListItemIcon>
+          <ListItemText primary={mailbox.name} />
+        </ListItem>
+        ))}
+       
+       
 
       </List>
     </div>
@@ -162,8 +202,8 @@ function ResponsiveDrawer(props) {
       </nav>
       <main className={classes.content}>
         <div className={classes.toolbar} />
-        {inInbox && <EmailList emails={inbox} />}
-        {!inInbox && <EmailList emails={trash} />}
+        
+         {/* <EmailList mailbox={selectedMailbox} /> */}
       </main>
     </div>
   );

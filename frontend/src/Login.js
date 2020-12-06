@@ -1,8 +1,9 @@
 import React from 'react';
 import { useHistory } from "react-router-dom";
+import { authenticate } from './services/auth';
 
 function Login() {
-  const [user, setUser] = React.useState({email: '', password: ''});
+  const [user, setUser] = React.useState({ email: '', password: '' });
   const history = useHistory();
 
   const handleInputChange = (event) => {
@@ -14,24 +15,11 @@ function Login() {
 
   const onSubmit = (event) => {
     event.preventDefault();
-    fetch('http://localhost:3010/auth', {
-      method: 'POST',
-      body: JSON.stringify(user),
-      headers: {
-        'Content-Type': 'application/json'
+    authenticate(user).then(authenticatedUser => {
+      if (authenticatedUser) {
+        history.push('/');
       }
     })
-    .then(res => {
-      if (!res.ok) { throw res }
-      return res.json() 
-    })
-    .then((user) => {
-      localStorage.setItem('user', JSON.stringify(user));
-      history.push('/'); // navigate to email list
-    })
-    .catch(err => {
-      alert('Error logging in, please try again');
-    });
   }
 
   return (
@@ -51,7 +39,7 @@ function Login() {
         onChange={handleInputChange}
         required
       />
-      <input type="submit" value="Submit"/>
+      <input type="submit" value="Submit" />
     </form>
   );
 }
