@@ -1,0 +1,343 @@
+#
+# CSE183 Assignment 9 Backend
+#
+
+# openapi: '3.0.3'
+
+# info:
+#   description: CSE183 Assignment 9 Backend
+#   version: 0.1.0
+#   title: CSE183 Assignment 9 Backend
+
+# servers:
+#   - url: http://localhost:3010/v0
+
+# paths:
+#   /dummy:
+#     get:
+#       description: Dummy Endpoint
+#       responses:
+#         200:
+#           description: Succesful
+#           content:
+#             application/json:
+#               schema:
+#                 $ref: '#/components/schemas/DummyResponse'
+#         default:
+#           description: unexpected error
+#           content:
+#             application/json:
+#               schema:
+#                 $ref: '#/components/schemas/Error'
+
+# components:
+#   schemas:
+#     Error:
+#       required:
+#         - code
+#         - message
+#       properties:
+#         code:
+#           type: integer
+#           format: int32
+#         message:
+#           type: string
+
+#     DummyResponse:
+#       required:
+#         - message
+#       properties:
+#         message:
+#           type: string
+
+openapi: '3.0.3'
+
+info:
+  description: CSE183 Assignment 8
+  version: 0.1.0
+  title: CSE183 Assignment 8
+
+servers:
+  - url: http://localhost:3010
+
+# paths:
+#   /v0/mail:
+#     get:
+#       description: Returns all EMail
+#       responses:
+#         200:
+#           description: EMail Response
+paths:
+  /auth:
+    post:
+      description: Authenticate user
+      requestBody:
+        description: user to authenticate
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              $ref: '#/components/schemas/LoginInfo'
+      responses:
+        200:
+          description: Application response
+          content:
+            application/json:
+              schema:
+                type: object
+                $ref: '#/components/schemas/AuthenticatedUser'
+        401:
+          description: Invalid username or password
+  /v0/mail:
+    get:
+      description: Returns all Email
+      parameters:
+      - name: mailbox
+        in: query
+        description: mailbox name
+        required: false
+        schema:
+          type: string
+      - name: from
+        in: query
+        description: Search in from
+        required: false
+        schema:
+          type: string
+      responses:
+        200:
+          description: Email Response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:  
+                  $ref: '#/components/schemas/Mailbox'
+        404:
+          description: mailbox not found
+        default:
+          description: Unexpected Error
+          content:
+            application/json:
+              schema:
+                type: string
+                $ref: '#/components/schemas/Error'          
+    post:
+      description: Creates a new email
+      requestBody:
+        description: email to add
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              $ref: '#/components/schemas/NewEmail'
+      responses:
+        201:
+          description: Application response
+          content:
+            application/json:
+              schema:
+                type: object
+                $ref: '#/components/schemas/Email'
+        400:
+          description: Invalid id  
+
+  /v0/mail/{id}:
+    get:
+      description: Returns a single mail
+      parameters:
+      - name: id
+        in: path
+        description: id of the email
+        required: true
+        schema:
+          type: string
+      responses:
+        200:
+          description: email found
+          content:
+            application/json:
+              schema:
+                type: object
+                $ref: '#/components/schemas/Email'
+        404:
+          description: email not found
+        default:
+          description: Unexpected Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    put:
+      description: Move E-mail
+      parameters:
+      - name: id
+        in: path
+        description: id of the email
+        required: true
+        schema:
+          type: string
+      - name: mailbox
+        in: query
+        description: mailbox name
+        required: true
+        schema:
+          type: string
+      responses:
+        204:
+          description: email moved succesfully
+          content:
+            application/json:
+              schema:
+                type: boolean
+        404:
+          description: email not found
+        default:
+          description: Unexpected Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        409:
+          description: Conflict Requested email in use.
+          content:
+            application/json:
+              schema:
+                type: string
+                $ref: '#/components/schemas/Error'
+
+components:
+  schemas:
+    Error:
+      type: object
+      required:
+        - code
+        - message
+      properties:
+        code:
+          type: integer
+          format: int32
+        message:
+          type: string
+
+    LoginInfo:
+      type: object
+      properties: 
+        email:
+          type: string
+        password:
+          type: string
+
+    AuthenticatedUser:
+      type: object
+      properties: 
+        name:
+          type: string
+        url:
+          type: string
+        accessToken:
+          type: string
+
+
+    EmailResponse:
+      type: object
+      properties: 
+        mail:
+          type: array
+          items:
+            $ref: '#/components/schemas/Email'
+
+    Mailbox:
+      type: object
+      properties:
+        name: 
+          type: string
+        mail:
+          type: array
+          items:
+            $ref: '#/components/schemas/MailboxEmail'
+
+    Email:
+      type: object
+      properties:
+        id:
+          type: string
+        from:
+          properties:
+            name:
+              type: string
+            email:
+              type: string  
+        to:
+          properties:
+            name:
+              type: string
+            email:
+              type: string
+        subject:
+          type: string
+        received:
+          type: string
+        sent:
+          type: string
+        content:
+          type: string
+      required:
+          - id
+          - to
+          - subject
+          - received
+          - content
+          - from
+          - sent
+
+    MailboxEmail:
+      type: object
+      properties:
+        id:
+          type: string
+        from:
+          properties:
+            name:
+              type: string
+            email:
+              type: string  
+        to:
+          properties:
+            name:
+              type: string
+            email:
+              type: string  
+        subject:
+          type: string
+        sent:
+          type: string
+        received:
+          type: string
+      required:
+          - id
+          - to
+          - subject
+          - received
+          - from
+          - sent
+     
+    NewEmail:
+      type: object
+      properties:
+        to:
+          properties:
+            name:
+              type: string
+            email:
+              type: string 
+        subject:
+          type: string
+        content:
+          type: string  
+      required:
+          - to
+          - subject
+          - content        
