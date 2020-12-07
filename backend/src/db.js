@@ -18,13 +18,13 @@ exports.selectEmails = async (mailbox, from, userid) => {
   };
   
   if (from && mailbox && userid) {
-    select += ` WHERE userid ~* $1 and mail->>'from' ~* $2 and mailbox ~* $3`;
+    select += ` WHERE userid = $1 and mail->>'from' ~* $2 and mailbox ~* $3`;
     query.values = [userid, from , mailbox];
   } else if (mailbox && userid) {
-    select += ` WHERE userid ~* $1 and mailbox ~* $2`;
+    select += ` WHERE userid = $1 and mailbox ~* $2`;
     query.values = [userid, mailbox];
   } else if (from && userid) {
-    select += ` WHERE userid ~* $1 and mail->>'from' ~* $2`;
+    select += ` WHERE userid = $1 and mail->>'from' ~* $2`;
     query.values = [userid, from];
   }else{
     select += ` WHERE userid = $1`;
@@ -34,7 +34,8 @@ exports.selectEmails = async (mailbox, from, userid) => {
   console.log('-------------------------------------------------------------------------------');
   console.log(query);
   const {rows} = await pool.query(query);
-  // console.log(rows);
+   console.log(rows[0]);
+   console.log('-------------------------------------------------------------------');
   const groupedMails = rows?.length ? new Map() : null;
   for (const row of rows) {
     if (groupedMails.has(row.mailbox)) {
@@ -90,10 +91,9 @@ exports.selectUserByEmail = async (email) => {
   text: select,
   values: [email],
   };
-  console.log(query);
   
   const {rows} = await pool.query(query);
-  console.log(rows)
+
   return rows.length>0? {id: rows[0].userid, ...rows[0].userinfo}: null;
   };
 

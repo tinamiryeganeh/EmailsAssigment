@@ -10,7 +10,7 @@ import TableRow from '@material-ui/core/TableRow';
 import Paper from '@material-ui/core/Paper';
 import Home from './Home';
 import PropTypes from 'prop-types';
-
+import {getMails} from './services/mail';
 
 const useStyles = makeStyles({
   table: {
@@ -22,29 +22,35 @@ const useStyles = makeStyles({
 *@return{object}
 *@param {string} props
 */
-export default function EmailList() {
-  const [mailbox, setMailbox] = useState('inbox');
-  const getBearerToken =() =>{
-      const user = localStorage.getItem('user');
-      return user ? JSON.parse(user).accessToken : null;
+export default function EmailList({mailbox}) {
+  
 
-  }
-  const [bearerToken, setBearerToken] = useState(getBearerToken);
+ 
   const [emails, setEmails]=  useState([]);
   useEffect(()=>{
-    fetch(`http://localhost:3010/v0/mail?mailbox=${mailbox}`,{
-      method: 'get',
-      headers: new Headers({
-        'Authorization': `Bearer ${bearerToken}`, 
-        'Content-Type': 'application/x-www-form-urlencoded'
-      })
-    })
-    .then(res=> res.json())
+    getMails(mailbox)
     .then(mailboxes=>{
-      console.log(mailboxes);
-      setEmails(mailboxes[0].mail);
-    })
+      if(mailboxes?.length>0){
+        let mails = mailboxes[0].mail.map((email) =>
+        ({...email, received: new Date(email.received)}));
+      mails.sort((email1, email2) => {
+        if (email1.received.getTime() > email2.received.getTime()) {
+          return -1;
+        }
+        if (email1.received.getTime() < email2.received.getTime()) {
+          return 1;
+        }
+        return 0;
+      });
+        setEmails(mails);
+      }else{
+        setEmails([]);
+      }
+    });
   },[mailbox]);
+
+
+
   const [open, setOpen] = useState(false);
   const [emailToView, setEmailToView] = useState();
   const onClose = () => {
@@ -85,7 +91,7 @@ export default function EmailList() {
       <TableContainer component={Paper}>
         <Table className={classes.table} aria-label="simple table">
           <TableBody>
-            {emails?.map((email) => (
+            {emails?.length > 0 && emails?.map((email) => (
               <TableRow onClick={
                 (e)=>{
                   viewEmail(email);
@@ -94,7 +100,7 @@ export default function EmailList() {
                 email.id
               }>
                 <TableCell>
-                  {email.from}
+                  {email.from.name}
                 </TableCell>
                 <TableCell>{email.subject}</TableCell>
                 <TableCell>{displayTime(email.received)}</TableCell>
