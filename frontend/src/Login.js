@@ -1,4 +1,5 @@
 import React from 'react';
+import './Login.css';
 import { useHistory } from "react-router-dom";
 import { authenticate } from './services/auth';
 
@@ -24,22 +25,32 @@ function Login() {
 
   return (
     <form onSubmit={onSubmit}>
-      <h2 id='welcome'>CSE183 Authenticated Books Example</h2>
-      <input
-        type="email"
-        name="email"
-        placeholder="EMail"
-        onChange={handleInputChange}
-        required
-      />
-      <input
-        type="password"
-        name="password"
-        placeholder="Password"
-        onChange={handleInputChange}
-        required
-      />
-      <input type="submit" value="Submit" />
+      <div className="loginBox">
+      <h2 id='welcome'>CSE183 Assignment 9</h2>
+      <div className="textBox">
+        <input
+          type="email"
+          id="email"
+          name="email"
+          placeholder="Email"
+          onChange={handleInputChange}
+          required
+        />
+      </div>
+      <div className="textBox">
+        <input
+          type="password"
+          id="email"
+          name="password"
+          placeholder="Password"
+          onChange={handleInputChange}
+          required
+        />
+      </div>
+      <input className="checkBox" type="checkbox"/>
+      <label>Remember me</label>
+      <input className="button" type="submit" value="Sign in" />
+      </div>
     </form>
   );
 }

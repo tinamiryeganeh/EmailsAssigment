@@ -207,7 +207,32 @@ paths:
               schema:
                 type: string
                 $ref: '#/components/schemas/Error'
-
+    patch:
+      description: Update an email
+      parameters:
+      - name: id
+        in: path
+        description: id of the email
+        required: true
+        schema:
+          type: string
+      requestBody:
+        description: email to Update
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              $ref: '#/components/schemas/Email'
+      responses:
+        201:
+          description: Application response
+          content:
+            application/json:
+              schema:
+                type: boolean
+        500:
+          description: Internal server error             
 components:
   schemas:
     Error:
@@ -284,6 +309,10 @@ components:
           type: string
         content:
           type: string
+        starred:
+          type: boolean
+        read:
+          type: boolean    
       required:
           - id
           - to
@@ -316,11 +345,14 @@ components:
           type: string
         received:
           type: string
+        content:
+          type: string  
       required:
           - id
           - to
           - subject
           - received
+          - content
           - from
           - sent
      

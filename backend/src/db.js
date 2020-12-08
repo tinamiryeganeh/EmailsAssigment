@@ -16,19 +16,23 @@ exports.selectEmails = async (mailbox, from, userid) => {
     text: '',
     values: [],
   };
-  
-  if (from && mailbox && userid) {
-    select += ` WHERE userid = $1 and mail->>'from' ~* $2 and mailbox ~* $3`;
-    query.values = [userid, from , mailbox];
-  } else if (mailbox && userid) {
-    select += ` WHERE userid = $1 and mailbox ~* $2`;
-    query.values = [userid, mailbox];
-  } else if (from && userid) {
-    select += ` WHERE userid = $1 and mail->>'from' ~* $2`;
-    query.values = [userid, from];
+  if(mailbox?.toLowerCase() === 'starred'){
+    select += ` WHERE userid = $1 and mail->>'starred' ~* $2`;
+    query.values = [userid, true];
   }else{
-    select += ` WHERE userid = $1`;
-    query.values = [userid];
+    if (from && mailbox && userid) {
+      select += ` WHERE userid = $1 and mail->>'from' ~* $2 and mailbox ~* $3`;
+      query.values = [userid, from , mailbox];
+    } else if (mailbox && userid) {
+      select += ` WHERE userid = $1 and mailbox ~* $2`;
+      query.values = [userid, mailbox];
+    } else if (from && userid) {
+      select += ` WHERE userid = $1 and mail->>'from' ~* $2`;
+      query.values = [userid, from];
+    }else{
+      select += ` WHERE userid = $1`;
+      query.values = [userid];
+    }
   }
   query.text = select;
   console.log('-------------------------------------------------------------------------------');
@@ -44,6 +48,15 @@ exports.selectEmails = async (mailbox, from, userid) => {
       groupedMails.set(row.mailbox, value);
     } else {
       groupedMails.set(row.mailbox, [{id: row.id, ...row.mail}]);
+    }
+    if(row.mail.starred){
+      if(groupedMails.has('starred')){
+        const value = groupedMails.get('starred');
+        value.push({id: row.id, ...row.mail});
+        groupedMails.set('starred', value);
+      }else{
+        groupedMails.set('starred',[{id: row.id, ...row.mail}]);
+      }
     }
   }
   // console.log(groupedMails);
@@ -82,6 +95,20 @@ exports.moveEmail = async (mail, mailbox) =>{
     values: [mailbox, mail.id],
   };
   const {rowCount} = await pool.query(query);
+  return rowCount>0;
+};
+
+exports.updateEmail = async(emailId, email)=>{
+  console.log('inside update email');
+  const update = 'UPDATE mail SET mail = $1 WHERE id = $2';
+  const query = {
+    text: update,
+    values: [email, emailId]
+  };
+  console.log('query---------------------------');
+  console.log(query)
+  const {rowCount} = await pool.query(query);
+  console.log(rowCount);
   return rowCount>0;
 };
 

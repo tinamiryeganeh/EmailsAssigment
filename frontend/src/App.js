@@ -30,6 +30,7 @@ function getDummy(setDummy) {
       });
 }
 
+
 /**
  * Simple component with no state.
  *

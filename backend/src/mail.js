@@ -11,8 +11,9 @@ exports.getAll = async (req, res) => {
     const mailboxes = [];
     for (const [key, value] of result) {
       // console.log(key,value);
-      mailboxes.push({name: key, mail: value?.map(removeContent)});
+      mailboxes.push({name: key, mail: value});
     }
+    //?.map(removeContent)
     res.status(200).json(mailboxes);
   } else {
     res.status(404).send();
@@ -55,6 +56,19 @@ exports.createEmail = async (req, res) => {
   }
 };
 
+exports.updateEmail = async(req,res)=>{
+  const emailId = req.params.id;
+  const email = req.body;
+  console.log(emailId);
+  console.log(email);
+try{
+  delete email.id;
+  res.status(201).json(await db.updateEmail(emailId, email));
+}catch(ex){
+  console.log(ex);
+  res.status(500).send();
+}
+}
 exports.moveEmail = async (req, res) => {
   const emailId = req.params.id;
   const email = await db.selectEmail(emailId);

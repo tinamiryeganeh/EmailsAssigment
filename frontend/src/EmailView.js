@@ -1,4 +1,4 @@
-// Tina Miryeganeh Assignment6 CSE-183
+// Tina Miryeganeh Assignment9 CSE-183
 import React, {useEffect, useState} from 'react';
 import {withStyles} from '@material-ui/core/styles';
 import Dialog from '@material-ui/core/Dialog';
@@ -53,11 +53,13 @@ const DialogContent = withStyles((theme) => ({
 //     padding: theme.spacing(1),
 //   },
 // }))(MuiDialogActions);
+
+
 /**
 *@return {object}
 *@param {object} object
 */
-export default function Home({email, open, handleClose}) {
+export default function EmailView({email, open, handleClose}) {
   const [fullScreen, setFullScreen] = useState(false);
   const isMobile = () => {
     // credit to Timothy Huang for this regex test:
@@ -82,8 +84,8 @@ export default function Home({email, open, handleClose}) {
         </DialogTitle>
         <DialogContent dividers>
           <Typography gutterBottom>
-            <p>From: {email.from}</p>
-            <p>To: {email.email}</p>
+      <p>From: {`${email.from.name}<${email.from.email}>`}</p>
+            <p>To: {`${email.to.name}<${email.to.email}>`}</p>
             <p>Subject: {email.subject}</p>
             <p>Recieved: {email.received.toString()}</p>
           </Typography>
@@ -96,7 +98,7 @@ export default function Home({email, open, handleClose}) {
   );
 }
 
-Home.propTypes = {
+EmailView.propTypes = {
   email: PropTypes.object,
   open: PropTypes.bool,
   handleClose: PropTypes.func,
