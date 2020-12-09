@@ -28,25 +28,19 @@ app.use(
     }),
 );
 
-app.use(function (req, res, next) {
 
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, PATCH, DELETE');
-  res.setHeader('Access-Control-Allow-Headers', 'X-Requested-With,content-type');
-  res.setHeader('Access-Control-Allow-Credentials', true);
-
-  next();
-});
 
 // Your routes go here
 app.post('/auth', auth.authenticate);
 app.get('/v0/mail',auth.check, mail.getAll);
 app.get('/v0/mail/:id',auth.check, mail.getById);
 app.post('/v0/mail',auth.check, mail.createEmail);
+app.put('/v0/mail/update/:id',auth.check, mail.updateEmail);
 app.put('/v0/mail/:id',auth.check, mail.moveEmail);
-app.patch('/v0/mail/:id',cors({
-  "origin": "http://localhost:3000", "methods": "GET,HEAD,PUT,PATCH,POST,DELETE", "preflightContinue": true, "optionsSuccessStatus": 204
-}),auth.check, mail.updateEmail);
+
+// app.patch('/v0/mail/:id',cors({
+//   "origin": "http://localhost:3000", "methods": "GET,HEAD,PUT,PATCH,POST,DELETE", "preflightContinue": true, "optionsSuccessStatus": 204
+// }),auth.check, mail.updateEmail);
 
 app.use((err, req, res, next) => {
   res.status(err.status).json({

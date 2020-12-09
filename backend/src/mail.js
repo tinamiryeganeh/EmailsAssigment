@@ -59,13 +59,13 @@ exports.createEmail = async (req, res) => {
 exports.updateEmail = async(req,res)=>{
   const emailId = req.params.id;
   const email = req.body;
-  console.log(emailId);
-  console.log(email);
+  // console.log(emailId);
+  // console.log(email);
 try{
   delete email.id;
   res.status(201).json(await db.updateEmail(emailId, email));
 }catch(ex){
-  console.log(ex);
+  //console.log(ex);
   res.status(500).send();
 }
 }
@@ -77,7 +77,7 @@ exports.moveEmail = async (req, res) => {
     if (mailBox === 'sent' && email.mailbox != mailBox) {
       res.status(409).send();
     } else {
-      res.status(204).send(await db.moveEmail(email, mailBox));
+      res.status(201).json(await db.moveEmail(email, mailBox));
     }
   } else {
     res.status(404).send();

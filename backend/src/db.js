@@ -105,8 +105,8 @@ exports.updateEmail = async(emailId, email)=>{
     text: update,
     values: [email, emailId]
   };
-  console.log('query---------------------------');
-  console.log(query)
+  // console.log('query---------------------------');
+  // console.log(query)
   const {rowCount} = await pool.query(query);
   console.log(rowCount);
   return rowCount>0;

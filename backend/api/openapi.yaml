@@ -89,6 +89,33 @@ paths:
                 $ref: '#/components/schemas/AuthenticatedUser'
         401:
           description: Invalid username or password
+  /v0/mail/update/{id}:
+    put:
+      description: Update an email
+      parameters:
+      - name: id
+        in: path
+        description: id of the email
+        required: true
+        schema:
+          type: string
+      requestBody:
+        description: email to Update
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              $ref: '#/components/schemas/Email'    
+      responses:
+        201:
+          description: Application response
+          content:
+            application/json:
+              schema:
+                type: boolean
+        500:
+          description: Internal server error 
   /v0/mail:
     get:
       description: Returns all Email
@@ -186,7 +213,7 @@ paths:
         schema:
           type: string
       responses:
-        204:
+        201:
           description: email moved succesfully
           content:
             application/json:
@@ -206,33 +233,7 @@ paths:
             application/json:
               schema:
                 type: string
-                $ref: '#/components/schemas/Error'
-    patch:
-      description: Update an email
-      parameters:
-      - name: id
-        in: path
-        description: id of the email
-        required: true
-        schema:
-          type: string
-      requestBody:
-        description: email to Update
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              $ref: '#/components/schemas/Email'
-      responses:
-        201:
-          description: Application response
-          content:
-            application/json:
-              schema:
-                type: boolean
-        500:
-          description: Internal server error             
+                $ref: '#/components/schemas/Error'            
 components:
   schemas:
     Error:
