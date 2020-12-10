@@ -17,12 +17,16 @@ import { formatDate } from './utils/formatDate';
 import { yellow } from "@material-ui/core/colors";
 import StarIcon from '@material-ui/icons/Star';
 import { updateEmail } from "./services/mail";
+import SettingView from './SettingView';
+import SearchView from './SearchView';
+import ComposeView from './ComposeMail';
+
 
 const useStyles = makeStyles({
   table: {
     minWidth: 300,
   },
-  bold:{
+  bold: {
     fontWeight: 900
   }
 });
@@ -34,15 +38,16 @@ const useStyles = makeStyles({
 *@return{object}
 *@param {string} props
 */
-export default function EmailList({ mailbox }) {
+export default function EmailList({ mailbox, searchText, refreshMailbox }) {
 
   const [emails, setEmails] = useState([]);
+  const [refresh, setRefresh] = useState(false);
   useEffect(() => {
     loadEmails()
-  }, [mailbox]);
+  }, [mailbox, searchText]);
 
   const loadEmails = () => {
-    getMails(mailbox)
+    getMails(mailbox, searchText)
       .then(mailboxes => {
         if (mailboxes?.length > 0) {
           let mails = mailboxes[0].mail.map((email) =>
@@ -67,27 +72,31 @@ export default function EmailList({ mailbox }) {
   const [emailToView, setEmailToView] = useState();
   const onClose = () => {
     setOpen(false);
+    refreshMailbox();
+    loadEmails();
   };
 
   const classes = useStyles();
   const viewEmail = (e, email) => {
     console.log(e);
-    if (e.target?.nodeName !== 'svg') {
+    if (e.target?.nodeName !== 'svg' && e.target?.nodeName !== 'path') {
+
       setEmailToView(email);
       setOpen(true);
       if (!email.read) {
-        updateEmail({ ...email, read: true });
+        modifyEmail({ ...email, read: true });
       }
     }
   };
 
-  const updateEmail = async (email)=>{
-    try{
+  const modifyEmail = async (email) => {
+    try {
       const success = await updateEmail(email);
       if (success) {
+        refreshMailbox();
         loadEmails();
       }
-    }catch(ex){
+    } catch (ex) {
 
     }
   }
@@ -108,14 +117,14 @@ export default function EmailList({ mailbox }) {
                 email.id
               }>
                 <AccountCircle />
-                <div className={!email.read?classes.bold:""}>{email.from.name}</div>
-                <div className={!email.read?classes.bold:""}>{email.subject}</div>
+                <div className={!email.read ? classes.bold : ""}>{email.from.name}</div>
+                <div className={!email.read ? classes.bold : ""}>{email.subject}</div>
                 <div>{email.content.substring(0, 30)}{email.content.length > 30 ? '...' : ''}</div>
                 <TableCell>{formatDate(email.received)}</TableCell>
                 {email.starred ? (<StarIcon style={{ color: yellow[500] }} onClick={() => {
-                  updateEmail({ ...email, starred: false })
+                  modifyEmail({ ...email, starred: false })
                 }} />) : (<StarOutlineIcon onClick={() => {
-                  updateEmail({ ...email, starred: true })
+                  modifyEmail({ ...email, starred: true })
                 }} />)}
               </TableRow>
             ))}
@@ -124,7 +133,8 @@ export default function EmailList({ mailbox }) {
         </Table>
       </TableContainer>
 
-      <EmailView email={emailToView} open={open} handleClose={onClose} />
+      <EmailView mailbox={mailbox} email={emailToView} open={open} handleClose={onClose} />
+      {/* <SettingView open={open} handleClose={onClose} /> */}
     </>
   );
 }

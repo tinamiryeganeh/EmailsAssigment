@@ -16,6 +16,10 @@ exports.selectEmails = async (mailbox, from, userid) => {
     text: '',
     values: [],
   };
+  // if(mailbox?.toLowerCase() === 'setting'){
+  //   select += ` WHERE userid = $1 and mail->>'setting' ~* $2`;
+  //   query.values = [userid, true];
+  // }else{
   if(mailbox?.toLowerCase() === 'starred'){
     select += ` WHERE userid = $1 and mail->>'starred' ~* $2`;
     query.values = [userid, true];
@@ -34,6 +38,7 @@ exports.selectEmails = async (mailbox, from, userid) => {
       query.values = [userid];
     }
   }
+  // }
   query.text = select;
   console.log('-------------------------------------------------------------------------------');
   console.log(query);

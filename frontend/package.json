@@ -22,6 +22,8 @@
     "@material-ui/icons": "^4.9.1",
     "axios": "^0.21.0",
     "draft-js": "^0.11.7",
+    "draftjs-to-html": "^0.9.1",
+    "html-to-draftjs": "^1.5.0",
     "prop-types": "^15.7.2",
     "react": "17.0.1",
     "react-autosuggest": "^10.0.4",

@@ -23,12 +23,22 @@ import Toolbar from '@material-ui/core/Toolbar';
 import Typography from '@material-ui/core/Typography';
 import {fade, makeStyles, useTheme} from '@material-ui/core/styles';
 import EmailList from './EmailList';
+import SettingView from './SettingView';
+import SearchView from './SearchView';
+import ComposeView from './SettingView';
 import {getMails} from './services/mail'
 import StarOutlineSharpIcon from '@material-ui/icons/StarOutlineSharp';
 import SearchIcon from '@material-ui/icons/Search';
 import InputBase from '@material-ui/core/InputBase';
-import Badge from '@material-ui/core/Badge';
 import AccountCircle from '@material-ui/icons/AccountCircle';
+import { yellow } from "@material-ui/core/colors";
+import StarIcon from '@material-ui/icons/Star';
+import SendIcon from '@material-ui/icons/Send';
+import DraftsIcon from '@material-ui/icons/Drafts';
+import DeleteIcon from '@material-ui/icons/Delete';
+import SettingsIcon from '@material-ui/icons/Settings';
+import AddIcon from '@material-ui/icons/Add';
+import ComposeMail from './ComposeMail';
 
 const drawerWidth = 240;
 const useStyles = makeStyles((theme) => ({
@@ -109,6 +119,7 @@ const useStyles = makeStyles((theme) => ({
 *@param {string} props
 */
 function ResponsiveDrawer(props) {
+  let timerId;
   const history = useHistory();
   const {window} = props;
   const classes = useStyles();
@@ -118,8 +129,15 @@ function ResponsiveDrawer(props) {
   const [trash, setTrash] = useState([]);
   const [inInbox, setInInbox] = useState(true);
   const [mailboxes, setMailboxes] = useState([]);
-  const [selectedMailbox, setSelectedMailbox] = useState('inbox')
+  const [selectedMailbox, setSelectedMailbox] = useState('inbox');
+  const [searchText, setSearchText]= useState('');
+  const [SelectedSetting, setSelectedSetting]= useState('');
+  const [ firstLoad, setFirstLoad] = useState(true);
+  const [openComposeMailDialog, setOpenComposeMailDialog]= useState(false);
   // [{name:'inbox', mail:[]}]
+  const closeComposeMailDialog = ()=>{
+    setOpenComposeMailDialog(false);
+  }
   const getMailCount = (mailboxName)=> {
     if(mailboxes?.length>0){
        return mailboxes.find(mailbox=> 
@@ -127,7 +145,15 @@ function ResponsiveDrawer(props) {
     }
     return 0;
   }
-  useEffect(()=>{
+  const getUnReadMails = (mailboxName)=> {
+    if(mailboxes?.length>0){
+       return mailboxes.find(mailbox=> 
+        mailbox.name.toLowerCase() === mailboxName.toLowerCase())?.mail?.filter(m=> !m.read)?.length
+    }
+    return 0;
+  }
+
+  const loadMailboxes = ()=>{
     getMails().then(mailboxes=>{
       setMailboxes(mailboxes);
     }).catch(error=>{
@@ -135,14 +161,37 @@ function ResponsiveDrawer(props) {
        history.push('/login');
      }
     })
+  }
+  useEffect(()=>{
+   loadMailboxes();
   },[]);
+
+  useEffect(()=>{
+    if(firstLoad){
+     setFirstLoad(false);
+    }else{
+      setMobileOpen(!mobileOpen);
+    }
+    
+  },[selectedMailbox])
   const handleDrawerToggle = () => {
     setMobileOpen(!mobileOpen);
   };
 
-  const handleProfileMenuOpen = (event) => {
-    setAnchorEl(event.currentTarget);
-  };
+  const onRefreshMailbox = ()=>{
+    loadMailboxes();
+  }
+
+
+  const onSearchChange = (e)=>{
+    if(timerId){
+      clearTimeout(timerId);
+    }
+    timerId =setTimeout(() => {
+      setSearchText(e.target.value);
+    }, 300);
+  }
+
 
   const drawer = (
     <div>
@@ -153,7 +202,7 @@ function ResponsiveDrawer(props) {
       <List >
          <ListItem selected={selectedMailbox.toLowerCase() === 'inbox'} button key="Inbox" onClick={()=>{setSelectedMailbox('inbox')}}>
           <ListItemIcon > <InboxIcon /> </ListItemIcon>
-          <ListItemText primary={`Inbox`} />{getMailCount("inbox")}
+          <ListItemText primary={`Inbox`} />{getUnReadMails("inbox")}
         </ListItem>
       </List> 
 
@@ -162,22 +211,22 @@ function ResponsiveDrawer(props) {
       <List >
       <ListItem selected={selectedMailbox.toLowerCase() === 'starred'} button key="Starred" onClick={()=>{setSelectedMailbox('Starred')}}>
           
-          <ListItemIcon > <InboxIcon /> </ListItemIcon>
+          <ListItemIcon > <StarIcon style={{ color: yellow[500] }} /> </ListItemIcon>
           <ListItemText primary="Starred" />{getMailCount("starred")}
         </ListItem>
         <ListItem selected={selectedMailbox.toLowerCase() === 'sent'} button key="Sent" onClick={()=>{setSelectedMailbox('Sent')}}>
           
-          <ListItemIcon > <InboxIcon /> </ListItemIcon>
-          <ListItemText primary="Sent" />{getMailCount("Sent")}
+          <ListItemIcon > <SendIcon /> </ListItemIcon>
+          <ListItemText primary="Sent" />
         </ListItem>
         <ListItem selected={selectedMailbox.toLowerCase() === 'drafts'} button key="Drafts" onClick={()=>{setSelectedMailbox('Drafts')}}>
           
-          <ListItemIcon > <InboxIcon /> </ListItemIcon>
+          <ListItemIcon > <DraftsIcon /> </ListItemIcon>
           <ListItemText primary="Drafts" />{getMailCount("Drafts")}
         </ListItem>
         <ListItem selected={selectedMailbox.toLowerCase() === 'trash'} button key="Trash" onClick={()=>{setSelectedMailbox('Trash')}}>
           
-          <ListItemIcon > <InboxIcon /> </ListItemIcon>
+          <ListItemIcon > <DeleteIcon /> </ListItemIcon>
           <ListItemText primary="Trash" />{getMailCount("Trash")}
         </ListItem>
       </List >
@@ -186,7 +235,7 @@ function ResponsiveDrawer(props) {
 
       <List>
       <ListItem selected={selectedMailbox.toLowerCase() === 'New Mailbox'} button key="New Mailbox" onClick={()=>{setSelectedMailbox('New Mailbox')}}>
-          <ListItemIcon > <InboxIcon /> </ListItemIcon>
+          <ListItemIcon > <AddIcon /> </ListItemIcon>
           <ListItemText primary="New Mailbox" />
         </ListItem>
      </List>
@@ -194,16 +243,16 @@ function ResponsiveDrawer(props) {
      <Divider />
 
      <List>
-      <ListItem selected={selectedMailbox.toLowerCase() === 'Setting'} button key="Setting" onClick={()=>{setSelectedMailbox('Setting')}}>
-          <ListItemIcon > <InboxIcon /> </ListItemIcon>
+      <ListItem button key="Setting" onClick={()=>{setSelectedMailbox('setting')}}>
+          <ListItemIcon > <SettingsIcon /> </ListItemIcon>
           <ListItemText primary="Setting" />
         </ListItem>
      </List>
 
       <List>
-        {mailboxes?.filter(mailbox=> mailbox.name !== 'inbox' && mailbox.name !== 'sent' && mailbox.name !== 'trash')?.map(mailbox=>( <ListItem button key={mailbox.name} onClick={()=>{setSelectedMailbox(mailbox.name)}}>
+        {mailboxes?.filter(mailbox=> mailbox.name !== 'starred' && mailbox.name !== 'inbox' && mailbox.name !== 'sent' && mailbox.name !== 'trash')?.map(mailbox=>( <ListItem button key={mailbox.name} onClick={()=>{setSelectedMailbox(mailbox.name)}}>
           <ListItemIcon > <InboxIcon /> </ListItemIcon>
-          <ListItemText primary={mailbox.name} />
+          <ListItemText primary={mailbox.name} />{getUnReadMails(mailbox.name)}
         </ListItem>
         ))}  
       </List>
@@ -237,6 +286,8 @@ function ResponsiveDrawer(props) {
             </div>
             <InputBase
               placeholder="Search…"
+              // onClick={}
+              onChange={onSearchChange}
               classes={{
                 root: classes.inputRoot,
                 input: classes.inputInput,
@@ -247,17 +298,20 @@ function ResponsiveDrawer(props) {
 
           <div className={classes.grow} />
           
-          <IconButton aria-label="show mails" color="inherit">
-              <Badge  color="secondary">
+          <IconButton 
+            aria-label="show mails" 
+            color="inherit"
+            onClick={()=> setOpenComposeMailDialog(true)}
+          >
                 <MailIcon />
-              </Badge>
             </IconButton>
+
 
             <IconButton
               edge="end"
               aria-label="account of current user"
               aria-haspopup="true"
-              onClick={handleProfileMenuOpen}
+              // onClick={}
               color="inherit"
             >
               <AccountCircle />
@@ -266,13 +320,9 @@ function ResponsiveDrawer(props) {
         </Toolbar>
       </AppBar>
 
-
-      {/* <Toolbar>
-         <Typography variant="h6" noWrap>
+      <Typography variant="h6" noWrap>
             CSE183 Mail - {selectedMailbox}
           </Typography>
-      </Toolbar>
-       */}
 
       <nav className={classes.drawer} aria-label="mailbox folders">
         <Hidden smUp implementation="css">
@@ -308,7 +358,11 @@ function ResponsiveDrawer(props) {
       </nav>
       <main className={classes.content}>
         <div className={classes.toolbar} />
-         <EmailList mailbox={selectedMailbox} />
+         <EmailList refreshMailbox={onRefreshMailbox} mailbox={selectedMailbox} searchText={searchText} />
+         <ComposeMail open={openComposeMailDialog} handleClose={closeComposeMailDialog} />
+         {/* <SettingView mailbox={selectedMailbox} />
+         <SearchView mailbox={selectedMailbox} />
+         <ComposeView mailbox={selectedMailbox} /> */}
       </main>
     </div>
   );
